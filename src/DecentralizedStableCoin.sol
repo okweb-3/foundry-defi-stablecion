@@ -28,6 +28,7 @@ pragma solidity ^0.8.18;
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+
 /**
  * @title Decentralized StableCoin
  * @author okweb3
@@ -46,7 +47,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
     //satisfy the standard ERC20 constructor parameters within our contracts constructor
     //set the name and symbol
     // constructor ()ERC20 ("DecentralizedStableCoin","DSC"){}
-    constructor(address initialOwner) ERC20("DecentralizedStableCoin", "DSC")Ownable(initialOwner) {}
+   constructor() ERC20("DecentralizedStableCoin", "DSC")Ownable() {}
    //Our burn function
    //The amount burnt must not be less than zero
    //The amount burnt must not be more than user's balance
