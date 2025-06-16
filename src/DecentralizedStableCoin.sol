@@ -47,7 +47,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
     //satisfy the standard ERC20 constructor parameters within our contracts constructor
     //set the name and symbol
     // constructor ()ERC20 ("DecentralizedStableCoin","DSC"){}
-   constructor() ERC20("DecentralizedStableCoin", "DSC")Ownable() {}
+   constructor() ERC20("DecentralizedStableCoin", "DSC")Ownable(address(msg.sender)) {}
    //Our burn function
    //The amount burnt must not be less than zero
    //The amount burnt must not be more than user's balance

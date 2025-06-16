@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
-import {Script} from "lib/forge-std/src/Script.sol";
-import {MockV3Aggregator} from "@chainlink/contracts/src/v0.8/tests/MockV3Aggregator.sol";
+import {Script} from "../lib/forge-std/src/Script.sol";
+import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
-import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 
 
 contract HelperConfig is Script {
+    NetworkConfig public activeNetworkConfig;
     uint8 public constant DECIMALS = 8;
     int256 public constant ETH_USD_PRICE = 2000e8;
     int256 public constant BTC_USD_PRICE = 1000e8;
@@ -20,7 +21,7 @@ contract HelperConfig is Script {
         uint256 deployerKey;
    }
 
-   NetworkConfig public activeNetworkConfig;
+   
 
    constructor(){
     if (block.chainid==111555111) {
@@ -45,21 +46,21 @@ contract HelperConfig is Script {
     //check to see if we set an active network config
 
     if(activeNetworkConfig.wethUsdPriceFeed!=address(0)){
-        return activeNetworkConfig;
+        return activeNetworkConfig;          
     }
     vm.startBroadcast();
     MockV3Aggregator ethUsdPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
-    ERC20Mock wethMock = new ERC20Mock("WETH","WETH",msg.sender,1000e8);
+    ERC20Mock wethMock = new ERC20Mock();
 
     MockV3Aggregator btcUsdPriceFeed = new MockV3Aggregator(DECIMALS,BTC_USD_PRICE);
-    ERC20Mock wbtcMock = new ERC20Mock("WBTC","WBTC",msg.sender,1000e8);
+    ERC20Mock wbtcMock = new ERC20Mock();
     vm.stopBroadcast();
 
     anvilNetworkConfig = NetworkConfig({
         wethUsdPriceFeed:address(ethUsdPriceFeed),
-        weth: address(wethMock),
+        weth:address(wethMock),
         wbtcUsdPriceFeed:address(btcUsdPriceFeed),
-        wbtc: address(wbtcMock),
+        wbtc:address(wbtcMock),
         deployerKey:DEFAULT_ANVIL_PRIVATE_KEY
    });
    }

@@ -12,13 +12,15 @@ contract DSCEngineTest is Test{
         DeployDSC deployer;
         DecentralizedStableCoin dsc;
         DSCEngine dsce;
-        address public weth;
-        HelperConfig public helperConfig;
+        HelperConfig  helperConfig;
         address ethUsdPriceFeed;
+        address  weth;
         function setUp() public{
             deployer = new DeployDSC();
             (dsc,dsce,helperConfig) = deployer.run();
-            (ethUsdPriceFeed,,weth,,) = helperConfig.activeNetworkConfig();
+            (ethUsdPriceFeed,, weth, ,) = helperConfig.activeNetworkConfig();
+            console.log("ethUsdPriceFeed:  ",ethUsdPriceFeed);
+            console.log("weth: ",weth);
         }
         /*//////////////////////////////////////////////////////////////
                                PRICE_TEST
@@ -26,7 +28,7 @@ contract DSCEngineTest is Test{
         function testGetUsdValue()public{
             //15e18*2000/ETH = 30000e18;
             uint256 ethAmount = 15e18;
-            uint256 expectedUsd = 30_000e18;
+            uint256 expectedUsd = 30000e18;
             uint256 actualUsd = dsce.getUsdValue(weth,ethAmount);
             console.log("expectedUsd: ",expectedUsd );
             console.log("actualUsd: ",actualUsd );
