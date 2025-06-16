@@ -95,6 +95,7 @@ contract DSCEngine is ReentrancyGuard {
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
     event CollateralDesposited(address indexed user, address indexed token, uint256 indexed amount);
+    event CollateralRedeemed(address indexed user, address indexed token,uint256 indexed amount);
 
      /*//////////////////////////////////////////////////////////////
                                MODIFIERS
@@ -139,7 +140,7 @@ contract DSCEngine is ReentrancyGuard {
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing  
      * @param amountCollateral: The amount of collateral you're depositing
      */
-    function depositCollateral(address tokenCollateralAddress,uint256 amountCollateral) external moreThanZero(amountCollateral) isAllowedToken(tokenCollateralAddress) nonReentrant{
+    function depositCollateral(address tokenCollateralAddress,uint256 amountCollateral) public moreThanZero(amountCollateral) isAllowedToken(tokenCollateralAddress) nonReentrant{
         //add the deposited collateral to user's balance
         s_collateralDeposited[msg.sender][tokenCollateralAddress]+=amountCollateral;
         emit CollateralDesposited(msg.sender,tokenCollateralAddress,amountCollateral);
@@ -149,15 +150,6 @@ contract DSCEngine is ReentrancyGuard {
         }
     }
 
-    function redeemCollateralForDes() external{}
-
-    function redeemCollateral() external{}
-
-    function burnDsc() external{}
-
-    function liquidate() external{}
-
-    function getHeathFactor() external view{}
 
     function mintDsc(uint256 amountDscToMint) public moreThanZero(amountDscToMint) nonReentrant{
         s_DSCMinted[msg.sender] +=amountDscToMint;
@@ -204,5 +196,35 @@ contract DSCEngine is ReentrancyGuard {
         (,int256 price,,,)=priceFeed.latestRoundData();
         return ((uint256(price)*ADDITIONAL_FEED_PRECISION)*amount)/PRECISION;
     }
+    function depositCollateralAndMintDsc(address tokenCollateralAddress,uint256 amountCollateral, uint256 amountDscToMint)public{
+        depositCollateral(tokenCollateralAddress,amountCollateral);
+        mintDsc(amountDscToMint);
+    }
+    function redeemCollateral (address tokenCollateralAddress,uint256 amountCollateral)public moreThanZero(amountCollateral)nonReentrant{
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -=amountCollateral;
+        emit CollateralRedeemed(msg.sender,tokenCollateralAddress,amountCollateral);
+
+        bool success = IERC20(tokenCollateralAddress).transfer(msg.sender,amountCollateral);
+        if(!success){
+            revert DSCEngine__TransferFailed();
+        }
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
     
+    function burnDsc(uint256 amount) public moreThanZero(amount){
+        s_DSCMinted[msg.sender] -=amount;
+        bool success = i_dsc.transferFrom(msg.sender,address(this),amount);
+        if(!success){
+            revert DSCEngine__TransferFailed();
+        }
+        i_dsc.burn(amount);
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
+    function redeemCollateralForDes(address tokenCollateralAddress, uint256 amountCollateral,uint256 amountDscToBurn) external{
+        burnDsc(amountDscToBurn);
+        redeemCollateral(tokenCollateralAddress,amountCollateral);
+    }
+    function liquidate() external{}
+
+    function getHeathFactor() external view{}
 }

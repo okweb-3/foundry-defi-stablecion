@@ -6,6 +6,7 @@ import {DSCEngine} from "../../src/DSCEngine.sol";
 import {DecentralizedStableCoin}  from "../../src/DecentralizedStableCoin.sol";
 import {Test,console} from "lib/forge-std/src/Test.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/token/ERC20Mock.sol";
 
 
 contract DSCEngineTest is Test{
@@ -14,18 +15,22 @@ contract DSCEngineTest is Test{
         DSCEngine dsce;
         HelperConfig  helperConfig;
         address ethUsdPriceFeed;
-        address  weth;
+        address weth;
+        address public USER = makeAddr("user");
+        uint256 public constant AMOUNT_COLLATERAL = 10 ether;
+        uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+
         function setUp() public{
             deployer = new DeployDSC();
             (dsc,dsce,helperConfig) = deployer.run();
             (ethUsdPriceFeed,, weth, ,) = helperConfig.activeNetworkConfig();
-            console.log("ethUsdPriceFeed:  ",ethUsdPriceFeed);
-            console.log("weth: ",weth);
+
+            ERC20Mock(weth).mint(USER,STARTING_ERC20_BALANCE);
         }
         /*//////////////////////////////////////////////////////////////
                                PRICE_TEST
         //////////////////////////////////////////////////////////////*/
-        function testGetUsdValue()public{
+        function testGetUsdValue() view public{
             //15e18*2000/ETH = 30000e18;
             uint256 ethAmount = 15e18;
             uint256 expectedUsd = 30000e18;
@@ -34,5 +39,15 @@ contract DSCEngineTest is Test{
             console.log("actualUsd: ",actualUsd );
             assertEq(expectedUsd,actualUsd);
         }
+        /*//////////////////////////////////////////////////////////////
+                        DEPOSITCOLLATERAL_TESTS
+        //////////////////////////////////////////////////////////////*/
+        function testRevertsIfCollateralZero()public{
+            vm.startPrank(USER);
+            ERC20Mock(weth).approve(address(dsce),AMOUNT_COLLATERAL);
 
+            vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+            dsce.depositCollateral(weth,0);
+            vm.stopPrank();
+        }
 }
