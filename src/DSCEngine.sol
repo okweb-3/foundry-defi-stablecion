@@ -67,7 +67,7 @@ contract DSCEngine is ReentrancyGuard {
 
     error DSCEngine__NeedsMoreThanZero();
     error DSCEngine__TokenAddressesAndPriceFeedAddressesMustBeSameLength();
-    error DSCEngine__TokenNotAllowed(address token);
+    error DSCEngine__NotAllowedToken();
     error DSCEngine__TransferFailed();
     error DSCEngine__BreaksHealthFactor(uint256 healthFactor);
     error DSCEngine__MintFailed();
@@ -122,7 +122,7 @@ contract DSCEngine is ReentrancyGuard {
 
     modifier isAllowedToken(address token) {
         if (s_priceFeeds[token] == address(0)) {
-            revert DSCEngine__TokenNotAllowed(token);
+            revert DSCEngine__NotAllowedToken();
         }
         _;
     }
@@ -391,5 +391,15 @@ contract DSCEngine is ReentrancyGuard {
         return
             (usdAmountInwei * PRECISION) /
             (uint256(price) * ADDITIONAL_FEED_PRECISION);
+    }
+
+    function getAccountInformation(
+        address user
+    )
+        external
+        view
+        returns (uint256 totalDscMinted, uint256 CollateralValueInUsd)
+    {
+        (totalDscMinted, CollateralValueInUsd) = _getAccountInformation(user);
     }
 }
