@@ -19,6 +19,15 @@ contract DSCEngineTest is Test {
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+    uint256 public constant AMOUNT_MINT = 5 ether;
+
+    modifier depositedCollateral() {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+        dsce.depositCollateral(weth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
+        _;
+    }
 
     function setUp() public {
         deployer = new DeployDSC();
@@ -28,7 +37,28 @@ contract DSCEngineTest is Test {
 
         ERC20Mock(weth).mint(USER, STARTING_ERC20_BALANCE);
     }
-
+    ////////////////////////////////////
+    /// depositCollateralAndMintDsc/////
+    ////////////////////////////////////
+    function testDespositeCollateralAndMintDsc_Success()
+        public
+        depositedCollateral
+    {}
+    ////////////////////////////
+    /// More Than Zero Test/////
+    ////////////////////////////
+    function testDespositeCollateralRevertIfAmountZero() public {
+        vm.startPrank(USER);
+        vm.expectRevert(DSCEngine.DSCEngine__NeedsMoreThanZero.selector);
+        dsce.depositCollateral(weth, 0);
+        vm.stopPrank();
+    }
+    function testDespositeCollateralSuccessIfMoreThanZero() public {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
+        dsce.depositCollateral(weth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
+    }
     ////////////////////////////
     /// Constructor Test   /////
     ////////////////////////////
@@ -88,13 +118,7 @@ contract DSCEngineTest is Test {
         dsce.depositCollateral(address(ranToken), AMOUNT_COLLATERAL);
         vm.stopPrank();
     }
-    modifier depositedCollateral() {
-        vm.startPrank(USER);
-        ERC20Mock(weth).approve(address(dsce), AMOUNT_COLLATERAL);
-        dsce.depositCollateral(weth, AMOUNT_COLLATERAL);
-        vm.stopPrank();
-        _;
-    }
+
     function testCanDepositeCollateralAndGetAccountInfo()
         public
         depositedCollateral
