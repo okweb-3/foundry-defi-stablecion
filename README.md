@@ -1,5 +1,5 @@
 # stablecoin
-## Our stablecoin is going to be 
+## This is study project
 1.Relative Stability: Anchored or Pegged to the US Dollar
     1.ChainkPrice feed
     2.Function to convert ETH & BTC to USD
